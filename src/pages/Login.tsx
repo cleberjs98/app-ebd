@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+// A LINHA 1 FOI CORRIGIDA (Removemos o "React, ")
+import { useEffect } from 'react'; 
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import { useNavigate } from "react-router-dom"; // Para navegar para a /home
 import { auth } from '../firebase'; // O nosso ficheiro firebase.ts
