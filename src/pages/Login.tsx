@@ -40,13 +40,8 @@ export default function Login() {
     await signInWithRedirect(auth, provider);
   };
 
-  // --- Proteção de Rota ---
-  // Se o "cérebro" disser que já estamos logados, vá para a Home
-  useEffect(() => {
-    if (!loading && user) {
-      navigate("/home");
-    }
-  }, [loading, user, navigate]);
+  // Removida a Proteção de Rota redundante, agora o AuthContext lida com isso.
+  // Este useEffect fica apenas para garantir que o redirecionamento acontece após o retorno do Google.
 
   // Se estiver a carregar ou já logado, mostrar "A carregar..."
   if (loading || user) {
