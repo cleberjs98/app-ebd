@@ -6,8 +6,7 @@ export default function Home() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // NOVO: Este useEffect "protege" a rota.
-  // Se o "Cérebro" não estiver a carregar E o user NÃO existir,
+  // "O Guarda": Se o "Cérebro" não estiver a carregar E o user NÃO existir,
   // ele "expulsa" o utilizador de volta para o Login.
   useEffect(() => {
     if (!loading && !user) {

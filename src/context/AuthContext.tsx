@@ -1,6 +1,7 @@
 // Importações de VALORES (Funções e Hooks)
 import { createContext, useState, useEffect, useContext } from 'react';
-import { onAuthStateChanged } from "firebase/auth";
+// NOVO: Adicionamos getRedirectResult aqui
+import { onAuthStateChanged, getRedirectResult } from "firebase/auth"; 
 import { auth } from '../firebase';
 
 // Importações de TIPOS (Usando 'import type')
@@ -28,17 +29,24 @@ interface AuthProviderProps {
 export const AuthContextProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null); 
   const [loading, setLoading] = useState(true);
+  // O useNavigate FOI REMOVIDO daqui
 
-  // Este useEffect apenas ouve o Firebase e atualiza o estado
   useEffect(() => {
+    // NOVO: Chamamos o "Apanhador" UMA VEZ quando o app carrega.
+    // Isto "acorda" o onAuthStateChanged e garante que o login
+    // de redirect seja detetado.
+    getRedirectResult(auth).catch((error) => {
+      console.error("Erro no getRedirectResult (AuthContext): ", error);
+    });
+
+    // O "Ouvinte" principal (como estava na sua sugestão)
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
-      // A LÓGICA DE NAVEGAÇÃO FOI REMOVIDA DAQUI
     });
 
     return () => unsubscribe();
-  }, []); // Sem dependências
+  }, []); // Sem dependências, corre só uma vez
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
