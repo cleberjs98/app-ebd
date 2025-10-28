@@ -2,50 +2,43 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from '../firebase';
-import { useNavigate } from 'react-router-dom';
 
 // Importações de TIPOS (Usando 'import type')
-import type { ReactNode } from 'react'; // <--- CORRIGIDO
-import type { User } from "firebase/auth"; // <--- CORRIGIDO
+import type { ReactNode } from 'react';
+import type { User } from "firebase/auth";
 
-// 1. Tipos de dados que o nosso contexto vai guardar
+// 1. Tipos de dados
 type AuthContextType = {
   user: User | null; 
   loading: boolean;
 };
 
-// 2. Criar o Contexto (com valores padrão nulos)
+// 2. Criar o Contexto
 const AuthContext = createContext<AuthContextType>({
   user: null, 
   loading: true,
 });
 
-// Definimos o tipo para o 'children' (os componentes que serão envolvidos)
+// Tipos para o 'children'
 interface AuthProviderProps {
     children: ReactNode; 
 }
 
-// 3. Criar o "Provedor" (o componente que vai "embrulhar" o nosso app)
+// 3. Criar o "Provedor"
 export const AuthContextProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null); 
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
-  // Este useEffect corre apenas uma vez para configurar o ouvinte do Firebase
+  // Este useEffect apenas ouve o Firebase e atualiza o estado
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
-
-      // --- LÓGICA DE REDIRECIONAMENTO CENTRALIZADA ---
-      if (currentUser && window.location.pathname === '/') {
-        navigate('/home'); 
-      }
-      // ---------------------------------------------------
+      // A LÓGICA DE NAVEGAÇÃO FOI REMOVIDA DAQUI
     });
 
     return () => unsubscribe();
-  }, [navigate]);
+  }, []); // Sem dependências
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
@@ -54,7 +47,7 @@ export const AuthContextProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// 4. Criar o hook customizado para usar o contexto
+// 4. Criar o hook
 export const useAuth = () => {
   return useContext(AuthContext);
 };
