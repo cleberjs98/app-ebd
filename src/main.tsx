@@ -5,40 +5,38 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 // 1. Importar o nosso CSS (Tailwind)
 import './index.css'; 
 
-// 2. Importar o nosso "molde"
+// 2. Importar o nosso "molde" (que agora vai carregar o AuthProvider)
 import App from './App.tsx'; 
 
 // 3. Importar as nossas páginas
 import Home from './pages/Home.tsx';
 import Login from './pages/Login.tsx';
 
-// 4. IMPORTAR O NOSSO "CÉREBRO" (A MUDANÇA ESTÁ AQUI)
-import { AuthProvider } from './context/AuthContext.tsx';
-
-// 5. Definir as rotas (isto fica igual)
+// 4. Definir as rotas
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <App />, // O "molde" App.tsx é o elemento principal
+    
+    // As páginas "filhas" serão renderizadas dentro do <Outlet> do App.tsx
     children: [
       {
         path: "/", 
-        element: <Login />,
+        element: <Login />, // A página de Login
       },
       {
         path: "/home", 
-        element: <Home />,
+        element: <Home />, // A página Home
       },
     ]
   },
 ]);
 
-// 6. Iniciar a aplicação
+// 5. Iniciar a aplicação
+// O AuthProvider FOI REMOVIDO daqui.
+// Apenas o RouterProvider é carregado aqui.
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    {/* 7. "EMBRULHAR" O APP TODO COM O AUTHPROVIDER (A OUTRA MUDANÇA) */}
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
