@@ -1,7 +1,7 @@
 // Importações de VALORES (Funções e Hooks)
 import { createContext, useState, useEffect, useContext } from 'react';
 // NOVO: Adicionamos getRedirectResult aqui
-import { onAuthStateChanged, getRedirectResult } from "firebase/auth"; 
+import { onAuthStateChanged, getRedirectResult, signOut } from "firebase/auth";
 import { auth } from '../firebase';
 
 // Importações de TIPOS (Usando 'import type')
@@ -10,14 +10,16 @@ import type { User } from "firebase/auth";
 
 // 1. Tipos de dados
 type AuthContextType = {
-  user: User | null; 
+  user: User | null;
   loading: boolean;
+  logout: () => Promise<void>;
 };
 
 // 2. Criar o Contexto
 const AuthContext = createContext<AuthContextType>({
-  user: null, 
+  user: null,
   loading: true,
+  logout: async () => {},
 });
 
 // Tipos para o 'children'
@@ -27,29 +29,52 @@ interface AuthProviderProps {
 
 // 3. Criar o "Provedor"
 export const AuthContextProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null); 
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  // O useNavigate FOI REMOVIDO daqui
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
-    // NOVO: Chamamos o "Apanhador" UMA VEZ quando o app carrega.
-    // Isto "acorda" o onAuthStateChanged e garante que o login
-    // de redirect seja detetado.
-    getRedirectResult(auth).catch((error) => {
-      console.error("Erro no getRedirectResult (AuthContext): ", error);
-    });
+    let unsubscribe: () => void;
 
-    // O "Ouvinte" principal (como estava na sua sugestão)
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
+    // Primeiro, tentar obter o resultado do redirect
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          // Se há um resultado do redirect, atualizar o user
+          setUser(result.user);
+        }
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Erro no getRedirectResult (AuthContext): ", error);
+        setLoading(false);
+      })
+      .finally(() => {
+        // Depois de processar o redirect, configurar o listener
+        unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser);
+          setLoading(false);
+        });
+      });
 
-    return () => unsubscribe();
+    // Cleanup: desinscrever o listener quando o componente desmontar
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []); // Sem dependências, corre só uma vez
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

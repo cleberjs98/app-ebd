@@ -3,8 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
+  };
 
   // "O Guarda": Se o "Cérebro" não estiver a carregar E o user NÃO existir,
   // ele "expulsa" o utilizador de volta para o Login.
@@ -23,7 +32,14 @@ export default function Home() {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold mb-4">Bem-vindo à Home</h2>
-      <p>Este é o conteúdo da página principal, visível apenas após o login.</p>
+      <p className="mb-4">Olá, {user.displayName || user.email}!</p>
+      <p className="mb-6">Este é o conteúdo da página principal, visível apenas após o login.</p>
+      <button
+        onClick={handleLogout}
+        className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+      >
+        Sair
+      </button>
     </div>
   );
 }
